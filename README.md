@@ -37,7 +37,7 @@ To run PyPSA, you need to have a case input file and data input files.
 
 pyPSA is run with the command
 
-```python clab_pypsa/run_pypsa.py -f all_firm.xlsx```
+```python clab_pypsa/run_pypsa.py -f all_firm_case.xlsx```
 
-where `all_firm.xlsx` is the case input file.
+where `all_firm_case.xlsx` is the case input file.
 
