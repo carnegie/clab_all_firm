@@ -18,6 +18,7 @@ Using PyPSA with [table input interface](https://github.com/carnegie/clab_pypsa)
 
    ```git clone https://github.com/carnegie/clab_all_firm --recursive```
 
+
 3. Install Gurobi
 
    Follow [installation instructions](https://www.gurobi.com/documentation/10.0/quickstart_windows/cs_python_installation_opt.html) to install Gurobi. Free licenses for academics are available.
@@ -41,3 +42,6 @@ pyPSA is run with the command
 
 where `all_firm_case.xlsx` is the case input file.
 
+## Update submodules when changes were made with
+
+```git submodule update --remote --recursive```
