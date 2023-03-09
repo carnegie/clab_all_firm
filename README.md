@@ -29,7 +29,7 @@ Using PyPSA with [table input interface](https://github.com/carnegie/clab_pypsa)
 
 The data input files are in the Carnegie storage `data`. The data files are in the format of csv files. The data directory is:
 
-```/carnegie/data/Shared/Labs/Caldeira Lab/Everyone/energy_demand_capacity_data/test_case_solar_wind_demand```
+```/carnegie/data/Shared/Labs/Caldeira Lab/Everyone/energy_demand_capacity_data/US_solar_wind_demand```
 
 #
 ## Run PyPSA
