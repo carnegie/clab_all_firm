@@ -8,47 +8,56 @@ logging.basicConfig(level=logging.INFO)
 # Set paths
 case_name = "_case"
 input_file_name = "all_firm" + case_name
-results_dir = "output_data/all_firm_case"
+results_dir = "output_data/all_firm_case_cost_increase"
 suffix = "_all"
 
 # Build network from file and run PyPSA for full network if it doesn't exist yet
-network, case_dict, component_list, comp_attributes = build_network(input_file_name+".xlsx")
+network_all, case_dict, component_list, comp_attributes = build_network(input_file_name+".xlsx")
 if not os.path.exists(os.path.join(results_dir, input_file_name.replace(case_name, suffix)+".pickle")):
-    run_pypsa(network, input_file_name+".xlsx", case_dict, component_list, outfile_suffix=suffix)
+    run_pypsa(network_all, input_file_name+".xlsx", case_dict, component_list, outfile_suffix=suffix)
     if not os.path.exists(results_dir):
         os.makedirs(results_dir)
-    network.export_to_netcdf(os.path.join(results_dir, input_file_name.replace(case_name, suffix)+".nc"))
+    network_all.export_to_netcdf(os.path.join(results_dir, input_file_name.replace(case_name, suffix)+".nc"))
     logging.info("Saved network to {}".format(os.path.join(results_dir, input_file_name.replace(case_name, suffix)+".nc")))
 else:
-    network = pypsa.Network(os.path.join(results_dir, input_file_name.replace(case_name, suffix)+".nc"), override_component_attrs=comp_attributes) 
+    network_all = pypsa.Network(os.path.join(results_dir, input_file_name.replace(case_name, suffix)+".nc"), override_component_attrs=comp_attributes) 
     logging.info("Loaded network from {}".format(os.path.join(results_dir, input_file_name.replace(case_name, suffix)+".nc")))
 
-counter = 0
-# Consecutively remove technology with largest total cost and rerun optimization
-keep_removing = True
-while keep_removing == True: 
+# counter = 0
+# # Consecutively remove technology with largest total cost and rerun optimization
+# keep_removing = True
+# while keep_removing == True: 
 
-    # Identify technology with largest total cost
-    result_file_name = input_file_name.replace(case_name, suffix)
-    # Load results
-    component_results = read_component_results(results_dir, result_file_name+".pickle")
+# Identify technology with largest total cost
+result_file_name = input_file_name.replace(case_name, suffix)
+# Load results
+component_results = read_component_results(results_dir, result_file_name+".pickle")
 
-    # If only wind and solar are left, stop
-    if len(component_results) == 2:
-        keep_removing = False
+# If only wind and solar are left, stop
+if len(component_results) == 2:
+    keep_removing = False
 
-    # Calculate total costs
-    costs = get_result(component_results, case_dict["total_hours"], "cost")
-    # Sort technologies by total cost and remove technology with largest total cost that is not wind or solar
-    cost_sorted = sorted(costs.items(), key=lambda x: x[1], reverse=True)
-    found_max = False
+# Calculate total costs
+costs = get_result(component_results, case_dict["total_hours"], "cost")
+# Sort technologies by total cost and remove technology with largest total cost that is not wind or solar
+cost_sorted = sorted(costs.items(), key=lambda x: x[1], reverse=True)
+costs_non_zero = [x for x in cost_sorted if x[1] != 0]
+print(costs_non_zero)
+found_max = False
 
-    for i in range(len(cost_sorted)):
-        if found_max == False:
-            if not any(x in cost_sorted[i][0] for x in ["wind", "solar", "co2_emissions"]):
-                max_key = cost_sorted[i][0]
-                found_max = True
-                
+    # for i in range(len(cost_sorted)):
+    #     if found_max == False:
+    #         if not any(x in cost_sorted[i][0] for x in ["wind", "solar", "co2_emissions"]):
+    #             max_key = cost_sorted[i][0]
+    #             found_max = True
+
+
+for cost_contributor in costs_non_zero:
+    print(cost_contributor)
+    remove_key = cost_contributor[0]
+    print(remove_key)
+    # Copy network_all
+    network = network_all.copy()
     for component in component_results:
 
         buses_max, bus_still_in_use = [], []
@@ -58,18 +67,18 @@ while keep_removing == True:
             components = getattr(network, component_class[1])
             if hasattr(components, "carrier"):
                 for carrier in components.carrier:
-                    if carrier == max_key or (max_key == "direct_air_capture" and carrier == "CO2 storage tank"):
+                    if carrier == remove_key or (remove_key == "direct_air_capture" and carrier == "CO2 storage tank"):
                         # Get component name of component with this carrier
-                        max_key_component_name = components[components.carrier == carrier].index[0]
-                        logging.info("Component name to be removed: {}".format(max_key_component_name))
+                        remove_key_component_name = components[components.carrier == carrier].index[0]
+                        logging.info("Component name to be removed: {}".format(remove_key_component_name))
                         # Get busses connected to this component
                         for i in ["", "0", "1", "2"]:
-                            if hasattr(components, "bus"+i) and getattr(components, "bus"+i).at[max_key_component_name] != "":
-                                logging.info("Bus of component to be removed: {}".format(getattr(components, "bus"+i).at[max_key_component_name]))
-                                if not getattr(components, "bus"+i).at[max_key_component_name] in buses_max:
-                                    buses_max.append(getattr(components, "bus"+i).at[max_key_component_name])
+                            if hasattr(components, "bus"+i) and getattr(components, "bus"+i).at[remove_key_component_name] != "":
+                                logging.info("Bus of component to be removed: {}".format(getattr(components, "bus"+i).at[remove_key_component_name]))
+                                if not getattr(components, "bus"+i).at[remove_key_component_name] in buses_max:
+                                    buses_max.append(getattr(components, "bus"+i).at[remove_key_component_name])
                         # Remove component
-                        network.remove(component_class[0], max_key_component_name)
+                        network.remove(component_class[0], remove_key_component_name)
                         logging.info("Removed component class: {}".format(component_class[0]))
             
         # Remove bus if no components are connected to it anymore
@@ -91,7 +100,8 @@ while keep_removing == True:
                     logging.info("Removed bus: {} because no components are connected to it anymore".format(bus_rm))
 
     # Rerun optimization
-    suffix = "_remove_{0}_{1}".format(counter, max_key.replace(" ", "_"))
+    abbr = get_abbreviation(remove_key)
+    suffix = "_remove_" + abbr
     run_pypsa(network, input_file_name+".xlsx", case_dict, component_list, outfile_suffix=suffix)
-    counter += 1
+    # counter += 1
    

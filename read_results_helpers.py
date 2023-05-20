@@ -47,3 +47,23 @@ def get_colors(component_results):
 
     color_dict = dict(zip(component_results, colors))
     return color_dict
+
+def get_demand(results_dir, pickle_file):
+    # Read in the data from pickle file
+    with open(os.path.join(results_dir, pickle_file), 'rb') as f:
+        results = pickle.load(f)
+        # Get results dictionaries
+        component_results = results['component results']
+        # Get demand
+        demand = component_results[component_results.index.get_level_values(0) == 'Load']['Withdrawal'].values[0]
+        # Get total hours
+        tot_hours = 8784
+        demand *= tot_hours
+    return demand
+
+def get_abbreviation(key):
+    abbreviation_dict = {'battery storage': 'btry', 'biomass': 'bio', 'CO2 storage tank': 'co2tank', 'direct air capture': 'dac', 
+                         'geothermal': 'geo', 'hydro': 'hyd', 'hydrogen': 'h2', 'load shedding': 'll', 
+                         'load shifting backward': 'lsb', 'load shifting forward': 'lsf', 'natgas': 'ng', 
+                         'natgas_wCCS': 'ng_ccs', 'nuclear': 'nuc', 'onwind': 'wind', 'phs': 'phs', 'solar-utility': 'sol'}
+    return abbreviation_dict[key]
