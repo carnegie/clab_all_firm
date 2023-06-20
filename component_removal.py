@@ -9,7 +9,7 @@ logging.basicConfig(level=logging.INFO)
 # Set paths
 case_name = "_case"
 input_file_name = "all_firm" + case_name
-results_dir = "output_data/all_firm_case_combinations_3"
+results_dir = "output_data/all_firm_case_cost_removal_no_geo_hydro"
 suffix = "_all"
 
 # Build network from file and run PyPSA for full network if it doesn't exist yet
@@ -28,26 +28,29 @@ result_file_name = input_file_name.replace(case_name, suffix)
 
 
 # Consecutively remove technology that leads to largest total cost and rerun optimization
-# counter = 0
-# keep_removing = True
-# while keep_removing == True: 
+counter = 0
+keep_removing = True
+while keep_removing == True: 
 
-#     # Copy results file to plotting folder
-#     if not os.path.exists(os.path.join(results_dir, "plotting/")):
-#         os.makedirs(os.path.join(results_dir, "plotting/"))
-#     os.system("cp {0} {1}".format(os.path.join(results_dir, result_file_name+".pickle"), os.path.join(results_dir, "plotting/")))        
-#     os.system("cp {0} {1}".format(os.path.join(results_dir, result_file_name+".xlsx"), os.path.join(results_dir, "plotting/")))
+    # Copy results file to plotting folder
+    if not os.path.exists(os.path.join(results_dir, "plotting/")):
+        os.makedirs(os.path.join(results_dir, "plotting/"))
+    os.system("cp {0} {1}".format(os.path.join(results_dir, result_file_name+".pickle"), os.path.join(results_dir, "plotting/")))        
+    os.system("cp {0} {1}".format(os.path.join(results_dir, result_file_name+".xlsx"), os.path.join(results_dir, "plotting/")))
 
-# Load results
-component_results = read_component_results(results_dir, result_file_name+".pickle")
+    # Load results
+    component_results = read_component_results(results_dir, result_file_name+".pickle")
 
     # If only wind and solar are left, stop
     # print(component_results)
     # if len(component_results) == 2:
     #     keep_removing = False
 
-# Calculate total costs
-costs = get_result(component_results, case_dict["total_hours"], "cost")
+    # Calculate total costs
+    costs = get_result(component_results, case_dict["total_hours"], "cost")
+    c = [comp for comp in costs.keys() if costs[comp] > 0.] 
+    if len(costs) == 1 or objectives[results_dir+result_file_name+".pickle"] == 0:
+        keep_removing = False
     # Sort technologies by total cost and remove technology with largest total cost that is not wind or solar
     # cost_sorted = sorted(costs.items(), key=lambda x: x[1], reverse=True)
     #costs_non_zero = [x for x in cost_sorted if x[1] != 0 and not any(y in x[0] for y in ["wind", "solar", "co2_emissions"])]
@@ -56,40 +59,21 @@ costs = get_result(component_results, case_dict["total_hours"], "cost")
     #     keep_removing = False
 
     # found_max = False
-        # for i in range(len(cost_sorted)):
-        #     if found_max == False:
-        #         if not any(x in cost_sorted[i][0] for x in ["wind", "solar", "co2_emissions"]):
-        #             max_key = cost_sorted[i][0]
-        #             found_max = True
+    # for i in range(len(cost_sorted)):
+    #     if found_max == False:
+    #         if not any(x in cost_sorted[i][0] for x in ["wind", "solar", "co2_emissions"]):
+    #             max_key = cost_sorted[i][0]
+    #             found_max = True
 
-# All combinations of 5 choices of costs_sorted keys
-firm_components = [x for x in costs.keys() if not any(y in x for y in ["wind", "solar", "co2_emissions", "CO2 storage tank"])]
-combinations = list(itertools.combinations(firm_components, 3))
-print("Number of components: {}".format(len(firm_components)))
-print("Number of combinations: {}".format(len(combinations)))
-co2_producing = ["natgas", "natgas_wCCS", "geothermal"]
-co2_reducing = ["direct air capture", "beccs"]
-drop = []
-for comb in combinations:
-    if any(x in co2_producing for x in comb) and not any(x in co2_reducing for x in comb):
-        drop.append(comb)
-    if any(x in co2_reducing for x in comb) and not any(x in co2_producing for x in comb):
-        drop.append(comb)
-combinations = [x for x in combinations if x not in drop]
-print("Number of combinations after dropping: {}".format(len(combinations)))
-for c in combinations[:10]:
-        print("\n",c)
 
-    # objectives = {}
+    objectives = {}
 
-    # for contributor in c:
-        # print(contributor)
-        # remove_key = contributor
-        # print(remove_key)
+    for contributor in c:
+        print(contributor)
+        remove_key = contributor
+
         # Copy network_all
         network = network_all.copy()
-        # for component in component_results:
-        #     print(component)
 
         buses_max, bus_still_in_use = [], []
         # Remove technology with largest total cost from network
@@ -100,14 +84,7 @@ for c in combinations[:10]:
             components = getattr(network, component_class[1])
             if hasattr(components, "carrier"):
                 for carrier in components.carrier:
-                    # if carrier == remove_key or (remove_key == "direct_air_capture" and carrier == "CO2 storage tank"):
-                    if not carrier in c:
-                        if carrier == "CO2 storage tank" and "direct air capture" in c:
-                            continue
-                        if carrier == "direct air capture" and "CO2 storage tank" in c:
-                            continue
-                        if carrier == "co2 atmosphere" or carrier == "solar-utility" or carrier == "onwind":
-                            continue
+                    if carrier == remove_key or (remove_key == "direct_air_capture" and carrier == "CO2 storage tank") or (remove_key == "CO2 storage tank" and carrier == "direct_air_capture"):
                         # Get component name of component with this carrier
                         remove_key_component_name = components[components.carrier == carrier].index[0]
                         logging.info("Component name to be removed: {}".format(remove_key_component_name))
@@ -140,24 +117,25 @@ for c in combinations[:10]:
                     logging.info("Removed bus: {} because no components are connected to it anymore".format(bus_rm))
 
         # Rerun optimization
-        suffix = ""
-        for comp in c:
-            abbr = get_abbreviation(comp)
-            suffix += "_"+abbr
-        # suffix = "_{0}_".format(counter) + remove_key.replace(" ", "_")
+        suffix = "_{0}_".format(counter) + remove_key.replace(" ", "_")
         run_pypsa(network, input_file_name+".xlsx", case_dict, component_list, outfile_suffix=suffix)
-        # network.export_to_netcdf(os.path.join(results_dir, input_file_name.replace(case_name, suffix)+".nc"))
+        if hasattr(network, "objective"):
+            network.export_to_netcdf(os.path.join(results_dir, input_file_name.replace(case_name, suffix)+".nc"))
 
-    #     # Read objective value
-    #     out_file = "all_firm"+suffix+".pickle"
-    #     objectives[out_file] = read_objective_value(results_dir, out_file)
+            # Read objective value
+            out_file = "all_firm"+suffix+".pickle"
+            print("reading objective value from file:")
+            print (results_dir, out_file)
+            objectives[out_file] = read_objective_value(results_dir, out_file)
+        else:
+            print("No objective value found for {}".format(remove_key))
+            objectives[out_file] = 0
 
-    # # Sort objectives dictionary by objective value
-    # objectives_sorted = dict(sorted(objectives.items(), key=lambda x: x[1], reverse=True))
-    # print("Objectives sorted: {}".format(objectives_sorted))
-    # result_file_name = list(objectives_sorted.keys())[0].replace(".pickle", "")
-    # print("Result file name with largest objective: {}".format(result_file_name))
-    # network_all = pypsa.Network(os.path.join(results_dir, result_file_name+".nc"), override_component_attrs=comp_attributes)
-    # counter += 1
-    # if len(objectives_sorted) == 1:
-    #     keep_removing = False
+    # Sort objectives dictionary by objective value
+    objectives_sorted = dict(sorted(objectives.items(), key=lambda x: x[1], reverse=True))
+    print("\nObjectives: {}".format(objectives))
+    print("\nObjectives sorted: {}".format(objectives_sorted))
+    result_file_name = list(objectives_sorted.keys())[0].replace(".pickle", "")
+    print("Result file name with largest objective: {}".format(result_file_name))
+    network_all = pypsa.Network(os.path.join(results_dir, result_file_name+".nc"), override_component_attrs=comp_attributes)
+    counter += 1

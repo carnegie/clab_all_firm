@@ -26,6 +26,13 @@ def read_component_results(results_dir, pickle_file):
         component_results = component_results.groupby(level=1).sum()
     return component_results
 
+def read_objective_value(results_dir, pickle_file):
+    with open(os.path.join(results_dir, pickle_file), 'rb') as f:
+        results = pickle.load(f)
+        # Get results dictionaries
+        objective_value = results['case results']['objective [€]'].values[0]
+    return objective_value
+
 def get_result(component_results, tot_hours, parameter):
     # Get values, set nan to zero
     if parameter == 'cost':
@@ -39,13 +46,13 @@ def get_result(component_results, tot_hours, parameter):
 
 def get_colors(component_results):
     # 20 colors mapped to all components, no duplicates
-    technolgies = ['battery storage', 'biomass', 'CO2 storage tank', 'direct air capture', 'geothermal', 'hydro', 
+    technolgies = ['battery storage', 'beccs', 'CO2 storage tank', 'direct air capture', 'geothermal', 'hydro', 
                     'hydrogen', 'load shedding', 'load shifting backward', 'load shifting forward', 'natgas', 'natgas_wCCS', 'nuclear', 
                     'onwind', 'phs', 'solar-utility']
-    colors = ['blue', 'green', 'brown', 'lavender', 'red', 'cyan', 'purple', 'lime', 'pink', 'magenta', 'gray', 'teal', 'orange', 
-              'lightblue',  'darkblue', 'yellow']
+    colors = ['blue', 'green', 'brown', 'black', 'red', 'cyan', 'pink', 'lime', 'purple', 'magenta', 'gray', 'teal', 'orange', 
+              'lightblue',  'darkblue', 'yellow']    
 
-    color_dict = dict(zip(component_results, colors))
+    color_dict = dict(zip(technolgies, colors))
     return color_dict
 
 def get_demand(results_dir, pickle_file):
@@ -62,7 +69,7 @@ def get_demand(results_dir, pickle_file):
     return demand
 
 def get_abbreviation(key):
-    abbreviation_dict = {'battery storage': 'btry', 'biomass': 'bio', 'CO2 storage tank': 'co2tank', 'direct air capture': 'dac', 
+    abbreviation_dict = {'battery storage': 'btry', 'beccs': 'beccs', 'CO2 storage tank': 'co2tank', 'direct air capture': 'dac', 
                          'geothermal': 'geo', 'hydro': 'hyd', 'hydrogen': 'h2', 'load shedding': 'll', 
                          'load shifting backward': 'lsb', 'load shifting forward': 'lsf', 'natgas': 'ng', 
                          'natgas_wCCS': 'ng_ccs', 'nuclear': 'nuc', 'onwind': 'wind', 'phs': 'phs', 'solar-utility': 'sol'}
