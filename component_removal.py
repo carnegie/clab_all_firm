@@ -3,13 +3,12 @@ from clab_pypsa.run_pypsa import build_network, run_pypsa
 import pypsa
 import logging
 import os
-import itertools
 logging.basicConfig(level=logging.INFO)
 
 # Set paths
-case_name = "_case"
+case_name = "_case_db_all_stores"
 input_file_name = "all_firm" + case_name
-results_dir = "output_data/all_firm_case_cost_removal_no_geo_hydro"
+results_dir = "output_data/all_firm_case_all_stores/"
 suffix = "_all"
 
 # Build network from file and run PyPSA for full network if it doesn't exist yet
@@ -49,8 +48,9 @@ while keep_removing == True:
     # Calculate total costs
     costs = get_result(component_results, case_dict["total_hours"], "cost")
     c = [comp for comp in costs.keys() if costs[comp] > 0.] 
-    if len(costs) == 1 or objectives[results_dir+result_file_name+".pickle"] == 0:
-        keep_removing = False
+    if not counter == 0:
+        if len(costs) == 1 or objectives[result_file_name+".pickle"] == 0:
+            keep_removing = False
     # Sort technologies by total cost and remove technology with largest total cost that is not wind or solar
     # cost_sorted = sorted(costs.items(), key=lambda x: x[1], reverse=True)
     #costs_non_zero = [x for x in cost_sorted if x[1] != 0 and not any(y in x[0] for y in ["wind", "solar", "co2_emissions"])]
@@ -132,7 +132,9 @@ while keep_removing == True:
             objectives[out_file] = 0
 
     # Sort objectives dictionary by objective value
-    objectives_sorted = dict(sorted(objectives.items(), key=lambda x: x[1], reverse=True))
+    # Sorted reverse true: largest objective first, for largest cost increase series
+    # Sorted reverse false: smallest objective first, for smallest cost increase series
+    objectives_sorted = dict(sorted(objectives.items(), key=lambda x: x[1], reverse=False))
     print("\nObjectives: {}".format(objectives))
     print("\nObjectives sorted: {}".format(objectives_sorted))
     result_file_name = list(objectives_sorted.keys())[0].replace(".pickle", "")

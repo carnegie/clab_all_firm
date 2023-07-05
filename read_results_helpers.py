@@ -36,21 +36,25 @@ def read_objective_value(results_dir, pickle_file):
 def get_result(component_results, tot_hours, parameter):
     # Get values, set nan to zero
     if parameter == 'cost':
-        opex = get_values(component_results, 'Operational Expenditure')
-        capex = get_values(component_results, 'Capital Expenditure')
+        opex_col = [x for x in component_results.columns if 'Operational Expenditure' in x]
+        opex = get_values(component_results, opex_col[0])
+        capex_col = [x for x in component_results.columns if 'Capital Expenditure' in x]
+        capex = get_values(component_results, capex_col[0])
+
         results = tot_hours * opex + capex
     else:
-        results = get_values(component_results, 'Optimal Capacity')
+        capacity_col = [x for x in component_results.columns if 'Optimal Capacity' in x]
+        results = get_values(component_results, capacity_col[0])
     result_dict = dict(zip(component_results.index, results))
     return result_dict
 
-def get_colors(component_results):
+def get_colors():
     # 20 colors mapped to all components, no duplicates
     technolgies = ['battery storage', 'beccs', 'CO2 storage tank', 'direct air capture', 'geothermal', 'hydro', 
                     'hydrogen', 'load shedding', 'load shifting backward', 'load shifting forward', 'natgas', 'natgas_wCCS', 'nuclear', 
-                    'onwind', 'phs', 'solar-utility']
+                    'onwind', 'phs', 'solar-utility', 'compressed_air_store', 'redox_store', 'zn_air_store', 'sand_store', 'concrete_store']
     colors = ['blue', 'green', 'brown', 'black', 'red', 'cyan', 'pink', 'lime', 'purple', 'magenta', 'gray', 'teal', 'orange', 
-              'lightblue',  'darkblue', 'yellow']    
+              'lightblue',  'darkblue', 'yellow', 'darkgreen', 'darkred', 'darkblue', 'darkmagenta', 'darkorange']
 
     color_dict = dict(zip(technolgies, colors))
     return color_dict
@@ -62,7 +66,8 @@ def get_demand(results_dir, pickle_file):
         # Get results dictionaries
         component_results = results['component results']
         # Get demand
-        demand = component_results[component_results.index.get_level_values(0) == 'Load']['Withdrawal'].values[0]
+        withdrawal_col = [x for x in component_results.columns if 'Withdrawal' in x]
+        demand = component_results[component_results.index.get_level_values(0) == 'Load'][withdrawal_col[0]].values[0]
         # Get total hours
         tot_hours = 8784
         demand *= tot_hours
