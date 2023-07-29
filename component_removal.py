@@ -4,15 +4,28 @@ import pypsa
 import logging
 import os
 logging.basicConfig(level=logging.INFO)
+import argparse
+from sys import exit
 
 # Set paths
-case_name = "_case_db_all_stores"
+parser = argparse.ArgumentParser()
+parser.add_argument("-c", "--case_name", help="Name of the case to be run, starts with _case")
+parser.add_argument("--order", choices=["least", "most"], default="least", help="Order in which technologies are removed, either by increasing cost the least or the most, default least")
+parser.add_argument("--dont_remove_SW", action="store_true", help="Don't remove solar/wind from network")
+args = parser.parse_args()
+
+case_name = args.case_name
+order = args.order
+dont_remove_SW = args.dont_remove_SW
+
 input_file_name = "all_firm" + case_name
-results_dir = "output_data/all_firm_case_all_stores/"
+results_dir = "output_data/" + input_file_name + "_" + order + "/"
 suffix = "_all"
+
 
 # Build network from file and run PyPSA for full network if it doesn't exist yet
 network_all, case_dict, component_list, comp_attributes = build_network(input_file_name+".xlsx")
+case_dict["case_name"] = "all_firm" + case_name + "_" + order
 if not os.path.exists(os.path.join(results_dir, input_file_name.replace(case_name, suffix)+".pickle")):
     run_pypsa(network_all, input_file_name+".xlsx", case_dict, component_list, outfile_suffix=suffix)
     if not os.path.exists(results_dir):
@@ -22,9 +35,14 @@ if not os.path.exists(os.path.join(results_dir, input_file_name.replace(case_nam
 else:
     network_all = pypsa.Network(os.path.join(results_dir, input_file_name.replace(case_name, suffix)+".nc"), override_component_attrs=comp_attributes) 
     logging.info("Loaded network from {}".format(os.path.join(results_dir, input_file_name.replace(case_name, suffix)+".nc")))
+    print("\n")
+    logging.warning("Network all_firm_all already exists, rerunning optimization will overwrite results. Do you want to continue? (y/n)")
+    print("\n")
+    answer = input()
+    if answer == "n":
+        exit()
 
 result_file_name = input_file_name.replace(case_name, suffix)
-
 
 # Consecutively remove technology that leads to largest total cost and rerun optimization
 counter = 0
@@ -71,6 +89,10 @@ while keep_removing == True:
     for contributor in c:
         print(contributor)
         remove_key = contributor
+
+        if dont_remove_SW == True:
+            if any(x in remove_key for x in ["wind", "solar"]):
+                continue
 
         # Copy network_all
         network = network_all.copy()
@@ -124,17 +146,22 @@ while keep_removing == True:
 
             # Read objective value
             out_file = "all_firm"+suffix+".pickle"
-            print("reading objective value from file:")
-            print (results_dir, out_file)
             objectives[out_file] = read_objective_value(results_dir, out_file)
         else:
-            print("No objective value found for {}".format(remove_key))
             objectives[out_file] = 0
 
     # Sort objectives dictionary by objective value
     # Sorted reverse true: largest objective first, for largest cost increase series
     # Sorted reverse false: smallest objective first, for smallest cost increase series
-    objectives_sorted = dict(sorted(objectives.items(), key=lambda x: x[1], reverse=False))
+    if order == "least":
+        reverse_input = False
+    else:
+        reverse_input = True
+
+    if objectives == {}:
+        keep_removing = False
+        break
+    objectives_sorted = dict(sorted(objectives.items(), key=lambda x: x[1], reverse=reverse_input))
     print("\nObjectives: {}".format(objectives))
     print("\nObjectives sorted: {}".format(objectives_sorted))
     result_file_name = list(objectives_sorted.keys())[0].replace(".pickle", "")
