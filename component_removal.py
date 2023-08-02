@@ -1,4 +1,4 @@
-from read_results_helpers import *
+from utils.read_results_helpers import *
 from clab_pypsa.run_pypsa import build_network, run_pypsa
 import pypsa
 import logging
@@ -9,7 +9,7 @@ from sys import exit
 
 # Set paths
 parser = argparse.ArgumentParser()
-parser.add_argument("-c", "--case_name", help="Name of the case to be run, starts with _case")
+parser.add_argument("-c", "--case_name", help="Name of the case to be run, starts with _case", default="_case")
 parser.add_argument("--order", choices=["least", "most"], default="least", help="Order in which technologies are removed, either by increasing cost the least or the most, default least")
 parser.add_argument("--dont_remove_SW", action="store_true", help="Don't remove solar/wind from network")
 args = parser.parse_args()

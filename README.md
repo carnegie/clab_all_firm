@@ -35,10 +35,10 @@ The data input files are in the Carnegie storage `data`. The data files are in t
 
 The script ```component_removal.py``` runs the optimization, determines the most valuable technology and removes it from the system which is the reoptimized. This process continues until only wind and solar generators are in the system. The script is run with the following command:
 
-```python component_removal.py  -c _case_all_stores --order most --dont_remove_SW```
+```python component_removal.py --order most --dont_remove_SW```
 
 where the options are:
-   - ```-c _case_all_stores```: the name of the case file
+   - ```-c```: the name of the case file, default is ```_case``` which runs the main case file ```all_firm_case.xlsx```
    - ```--order most```: the order in which the components are removed, either most valuable or least valuable
    - ```--dont_remove_SW```: if this option is not used, the script will also remove solar and wind generators from the system
 
