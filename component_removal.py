@@ -25,6 +25,7 @@ suffix = "_all"
 
 # Build network from file and run PyPSA for full network if it doesn't exist yet
 network_all, case_dict, component_list, comp_attributes = build_network(input_file_name+".xlsx")
+# Overwrite the case name in the input file
 case_dict["case_name"] = "all_firm" + case_name + "_" + order
 if not os.path.exists(os.path.join(results_dir, input_file_name.replace(case_name, suffix)+".pickle")):
     run_pypsa(network_all, input_file_name+".xlsx", case_dict, component_list, outfile_suffix=suffix)
