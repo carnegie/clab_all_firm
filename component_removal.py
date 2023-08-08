@@ -84,7 +84,7 @@ def main(args):
     # Overwrite the case name in the input file
     case_dict["case_name"] = "all_firm" + case_name + "_" + order
     if not os.path.exists(os.path.join(results_dir, input_file_name.replace(case_name, suffix)+".pickle")):
-        run_pypsa(network_all, input_file_name+".xlsx", case_dict, component_list, outfile_suffix=suffix)
+        run_pypsa(network_all, "input_data/"+input_file_name+".xlsx", case_dict, component_list, outfile_suffix=suffix)
         if not os.path.exists(results_dir):
             os.makedirs(results_dir)
         network_all.export_to_netcdf(os.path.join(results_dir, input_file_name.replace(case_name, suffix)+".nc"))
@@ -145,7 +145,7 @@ def main(args):
 
             # Rerun optimization
             suffix = "_{0}_".format(counter) + remove_key.replace(" ", "_")
-            run_pypsa(network, input_file_name+".xlsx", case_dict, component_list, outfile_suffix=suffix)
+            run_pypsa(network, "input_data/"+input_file_name+".xlsx", case_dict, component_list, outfile_suffix=suffix)
             if hasattr(network, "objective"):
                 network.export_to_netcdf(os.path.join(results_dir, input_file_name.replace(case_name, suffix)+".nc"))
 

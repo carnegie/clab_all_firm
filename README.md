@@ -13,7 +13,7 @@ Using PyPSA with [table input interface](https://github.com/carnegie/clab_pypsa)
 
    ```cd clab_all_firm```
 
-   ```conda env create -f clab_pypsa/env.yml```
+   ```conda env create -f clab_pypsa/env.yaml```
 
    ```conda activate pypsa_table```
 
