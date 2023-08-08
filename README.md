@@ -26,9 +26,7 @@ Using PyPSA with [table input interface](https://github.com/carnegie/clab_pypsa)
 #
 ## Data input files
 
-The data input files are in the Carnegie storage `data`. The data files are in the format of csv files. The data directory is:
-
-```/carnegie/data/Shared/Labs/Caldeira Lab/Everyone/energy_demand_capacity_data/US_solar_wind_demand```
+The data input files are stored in ```input_data```. It contains solar and wind capacity factors and demand data for the contiguous United States as well as cost input data.
 
 #
 ## Run PyPSA to recreate the series outputs
@@ -50,6 +48,6 @@ The results are plotted with the interactive jupyter notebook ```plot_results.ip
 
 ```jupyter notebook plot_results.ipynb```
 
-and plots the results in the ```output_data/*case*/plotting``` directory.
+and plots the results in the ```figures/``` directory.
 
 
