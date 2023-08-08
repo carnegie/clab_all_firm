@@ -31,7 +31,7 @@ def get_hatching_color(component, technologies, color_dict):
         hatch_color = color_dict[index]
     return hatched, fill_color, hatch_color
 
-def set_title(outfile_suffix, ax):
+def set_title(outfile_suffix, ax, poi):
     """
     Set title for plot
     """
@@ -43,6 +43,8 @@ def set_title(outfile_suffix, ax):
         add = ', no firm generators'
     else:
         add = ''
+    if poi == 'dispatch':
+        add += ' generation'
     ax.set_title('{0} cost increase{1}'.format(large_small, add))
     # Set title size and position
     ax.title.set_size(14)
@@ -66,10 +68,17 @@ def set_x_y_labels(outfile_suffix, poi, ax):
         unit = 'MW (or tCo2 for CO2 storage)'
     elif poi == 'normalized_cost':
         unit = '€/MWh covered demand'
+    elif poi == 'dispatch':
+        unit = 'MWh'
     else:
         print('No unit defined for {0}'.format(poi))
         unit =  ''
-    ax.set_ylabel('Total {0} [{1}]'.format(poi.replace('_',' '), unit))
+
+    if poi == 'dispatch':
+        add = 'generation '
+    else:
+        add = ''
+    ax.set_ylabel('Total {0}{1} [{2}]'.format(add, poi.replace('_',' '), unit))
     return ax
 
 def get_colors():
