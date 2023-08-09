@@ -116,7 +116,7 @@ def main(args):
         component_results = read_component_results(results_dir, result_file_name+".pickle")
 
         # Calculate total costs
-        costs = get_result(component_results, case_dict["total_hours"], "cost")
+        costs = get_result(component_results, "cost")
         c = [comp for comp in costs.keys() if costs[comp] > 0.] 
         if not counter == 0:
             if len(costs) == 1 or objectives[result_file_name+".pickle"] == 0:

@@ -10,6 +10,9 @@ def get_hatching_color(component, technologies, color_dict):
             fill_color = hatch_color = 'lightblue'
         elif component == 'solar-utility':
             fill_color = hatch_color = 'yellow'
+        elif component == 'curtailment':
+            fill_color = 'black'
+            hatch_color = 'black'
         else:
             index = technologies['generators'].index(component)  - 2
             fill_color = hatch_color = color_dict[index]
