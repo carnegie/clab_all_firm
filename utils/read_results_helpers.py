@@ -44,7 +44,7 @@ def read_objective_value(results_dir, pickle_file):
         objective_value = results['case results'][objective_col[0]].values[0]
     return objective_value  
 
-def get_result(component_results, parameter):
+def get_result(component_results, parameter, generators=None):
     """
     Get values for parameter
     """
@@ -55,16 +55,28 @@ def get_result(component_results, parameter):
         capex = get_values(component_results, capex_col[0])
 
         results = opex + capex
-    elif parameter == 'capacity':
+    elif parameter == 'capacity' or parameter == 'dispatch':
         capacity_col = [x for x in component_results.columns if 'Optimal Capacity' in x]
-        results = get_values(component_results, capacity_col[0])
+        capacities = get_values(component_results, capacity_col[0])
+        if parameter == 'capacity':
+            results = capacities
 
-    elif parameter == 'dispatch':
-        dispatch_col = [x for x in component_results.columns if 'Dispatch' in x]
-        results = get_values(component_results, dispatch_col[0])
-        curtailment_col = [x for x in component_results.columns if 'Curtailment' in x]
-        curtailment = get_values(component_results, curtailment_col[0])
-        tot_curtailment = np.sum(curtailment)
+        else:
+            dispatch_col = [x for x in component_results.columns if 'Dispatch' in x]
+            results = get_values(component_results, dispatch_col[0])
+            # Curtailment is directly calculated for variable generators
+            curtailment_col = [x for x in component_results.columns if 'Curtailment' in x]
+            curtailment = get_values(component_results, curtailment_col[0])
+
+            unutilized_capacity = capacities*8487 - results
+            # Set rows that have a curtailment value to zero
+            unutilized_capacity[curtailment != 0] = 0
+            # Set rows to zero that have a component name not in generator
+            unutilized_capacity[~component_results.index.isin(generators)] = 0
+            # Add unutilized capacity to curtailment
+            curtailment += unutilized_capacity
+
+            tot_curtailment = np.sum(curtailment)
 
     else:
         raise ValueError('Parameter not recognized: {0}'.format(parameter))
@@ -132,7 +144,7 @@ def get_files(res_dir):
     return files_sort
 
 
-def compute_results(res_dir, poi, files_sorted, pass_results=[]):
+def compute_results(res_dir, poi, files_sorted, firm_gens, pass_results=[]):
     """
     Compute results to be plotted for all case pickle files in all_firm_case folder
     """
@@ -142,9 +154,7 @@ def compute_results(res_dir, poi, files_sorted, pass_results=[]):
             # Load results
             component_results = read_component_results(res_dir, case_file)
             # Calculate results
-            results = get_result(component_results, poi)
-            # Sort results by value in descending order
-            results = {k: v for k, v in sorted(results.items(), key=lambda item: item[1], reverse=True)}
+            results = get_result(component_results, poi, generators=firm_gens)
 
             all_results.append(results)       
     
