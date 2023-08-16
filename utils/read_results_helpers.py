@@ -83,7 +83,7 @@ def get_result(component_results, parameter, generators=None):
 
     result_dict = dict(zip(component_results.index, results))
     if parameter == 'dispatch':
-        result_dict['curtailment'] = tot_curtailment
+        result_dict['unutilized capacity'] = tot_curtailment
     return result_dict
 
 
