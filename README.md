@@ -37,7 +37,7 @@ The data input files are stored in ```input_data```. It contains solar and wind 
 #
 ## Run PyPSA to recreate the series outputs
 
-In the pypsa_table environment, the script ```component_removal.py``` runs the optimization, determines the most valuable technology and removes it from the system which is the reoptimized. This process continues until only wind and solar generators are in the system. The script is run with the following command:
+The script ```component_removal.py``` runs the optimization, determines the most valuable technology and removes it from the system which is the reoptimized. This process continues until only wind and solar generators are in the system. The script is run in the pypsa_table environment with the following command:
 
 ```python component_removal.py --order most --dont_remove_SW```
 
