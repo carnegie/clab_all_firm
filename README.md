@@ -22,6 +22,12 @@ Using PyPSA with [table input interface](https://github.com/carnegie/clab_pypsa)
 
    Follow [installation instructions](https://www.gurobi.com/documentation/10.0/quickstart_windows/cs_python_installation_opt.html) to install Gurobi. Free licenses for academics are available.
 
+If you already have Gurobi installed on your computer, you may find it useful to execute the following commands in the pypsa_table environment:
+
+   ```conda config --add channels https://conda.anaconda.org/gurobi```
+
+   ```conda install gurobi```
+
 
 #
 ## Data input files
@@ -31,7 +37,7 @@ The data input files are stored in ```input_data```. It contains solar and wind 
 #
 ## Run PyPSA to recreate the series outputs
 
-The script ```component_removal.py``` runs the optimization, determines the most valuable technology and removes it from the system which is the reoptimized. This process continues until only wind and solar generators are in the system. The script is run with the following command:
+In the pypsa_table environment, the script ```component_removal.py``` runs the optimization, determines the most valuable technology and removes it from the system which is the reoptimized. This process continues until only wind and solar generators are in the system. The script is run with the following command:
 
 ```python component_removal.py --order most --dont_remove_SW```
 
