@@ -1,4 +1,4 @@
-from utils.read_results_helpers import read_component_results, read_objective_value, get_result
+from utils.read_results_helpers import read_component_results, read_objective_value, get_result, updated_input_sheet_and_component_list
 from clab_pypsa.run_pypsa import build_network, run_pypsa
 import pypsa
 import logging
@@ -100,6 +100,7 @@ def main(args):
             exit()
 
     result_file_name = input_file_name.replace(case_name, suffix)
+    input_file = "input_data/"+input_file_name+".xlsx"
 
     # Consecutively remove technology that leads to largest total cost and rerun optimization
     counter = 0
@@ -143,9 +144,12 @@ def main(args):
 
             network = remove_empty_buses(network, buses_max)    
 
-            # Rerun optimization
             suffix = "_{0}_".format(counter) + remove_key.replace(" ", "_")
-            run_pypsa(network, "input_data/"+input_file_name+".xlsx", case_dict, component_list, outfile_suffix=suffix)
+            # Update input file and component list
+            updated_input_file, updated_component_list = updated_input_sheet_and_component_list(input_file, component_list, remove_key, suffix)
+            # Rerun optimization
+            run_pypsa(network, updated_input_file, case_dict, updated_component_list, outfile_suffix=suffix)
+ 
             if hasattr(network, "objective"):
                 network.export_to_netcdf(os.path.join(results_dir, input_file_name.replace(case_name, suffix)+".nc"))
 
@@ -170,6 +174,10 @@ def main(args):
         print("Result file name with largest objective: {}".format(result_file_name))
         network_all = pypsa.Network(os.path.join(results_dir, result_file_name+".nc"), override_component_attrs=comp_attributes)
         counter += 1
+        input_file = os.path.join("input_data/temp", result_file_name.replace("all_firm", "all_firm_case")+".xlsx")
+
+    # Remove updated input sheets except for all_firm_case
+    os.system("rm -r {0}".format(os.path.join('input_data', 'temp/')))
 
 if __name__ == "__main__":
 

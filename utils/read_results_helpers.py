@@ -1,6 +1,7 @@
 import os
 import numpy as np
 import pickle
+import pandas as pd
 
 
 def get_values(component_results, parameter):
@@ -170,3 +171,26 @@ def compute_results(res_dir, poi, files_sorted, firm_gens, pass_results=[]):
         raise ValueError("Couldn't compute results for {0}".format(poi))
 
     return all_results
+
+def updated_input_sheet_and_component_list(input_file, comp_list, remove_comp, suffix):
+    """
+    Update input sheet and component list component is removed
+    """
+    # Remove component row(s) from input file
+    if not os.path.exists("input_data/temp"):
+        os.makedirs("input_data/temp")
+    updated_input_file = os.path.join("input_data/temp", "all_firm_case"+suffix+".xlsx")
+    with pd.ExcelWriter(updated_input_file) as writer:
+        # Read input file
+        input_df = pd.read_excel(input_file, sheet_name=0)
+        # Remove rows that contain remove_comp
+        input_df = input_df[~input_df.isin([remove_comp]).any(axis=1)]
+        input_df.to_excel(writer, sheet_name="input file")
+        # Column names
+        headers = ["PyPSA case input file"] + (len(input_df.columns)-1) * [""]
+        input_df.to_excel(writer, sheet_name="input file", index=False, header=headers)
+
+    # Remove component from component list
+    updated_comp_list = [comp for comp in comp_list if comp['carrier'] != remove_comp]
+
+    return updated_input_file, updated_comp_list
