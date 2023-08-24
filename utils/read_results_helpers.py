@@ -172,7 +172,7 @@ def compute_results(res_dir, poi, files_sorted, firm_gens, pass_results=[]):
 
     return all_results
 
-def updated_input_sheet_and_component_list(input_file, comp_list, remove_comp, suffix):
+def update_input_sheet(input_file, remove_comp, suffix):
     """
     Update input sheet and component list component is removed
     """
@@ -190,7 +190,4 @@ def updated_input_sheet_and_component_list(input_file, comp_list, remove_comp, s
         headers = ["PyPSA case input file"] + (len(input_df.columns)-1) * [""]
         input_df.to_excel(writer, sheet_name="input file", index=False, header=headers)
 
-    # Remove component from component list
-    updated_comp_list = [comp for comp in comp_list if comp['carrier'] != remove_comp]
-
-    return updated_input_file, updated_comp_list
+    return updated_input_file

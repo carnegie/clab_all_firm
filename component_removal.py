@@ -1,4 +1,4 @@
-from utils.read_results_helpers import read_component_results, read_objective_value, get_result, updated_input_sheet_and_component_list
+from utils.read_results_helpers import read_component_results, read_objective_value, get_result, update_input_sheet
 from clab_pypsa.run_pypsa import build_network, run_pypsa
 import pypsa
 import logging
@@ -145,8 +145,13 @@ def main(args):
             network = remove_empty_buses(network, buses_max)    
 
             suffix = "_{0}_".format(counter) + remove_key.replace(" ", "_")
+
             # Update input file and component list
-            updated_input_file, updated_component_list = updated_input_sheet_and_component_list(input_file, component_list, remove_key, suffix)
+            updated_input_file = update_input_sheet(input_file, remove_key, suffix)
+            # Read network in from updated input file
+            network, case_dict, updated_component_list, comp_attrs = build_network(updated_input_file)
+            case_dict["case_name"] = "all_firm" + case_name + "_" + order
+
             # Rerun optimization
             run_pypsa(network, updated_input_file, case_dict, updated_component_list, outfile_suffix=suffix)
  
