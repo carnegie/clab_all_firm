@@ -11,6 +11,8 @@ Using PyPSA with [table input interface](https://github.com/carnegie/clab_pypsa)
 
 ### Set up the environment
 
+The setup described below uses [conda](https://docs.conda.io/en/latest/miniconda.html) for easy package management.
+
    ```cd clab_all_firm```
 
    ```conda env create -f clab_pypsa/env.yaml```
