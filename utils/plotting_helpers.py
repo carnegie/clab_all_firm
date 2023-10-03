@@ -90,7 +90,7 @@ def get_colors():
     """
     
     # Colors for length of technologies
-    colors = ['mediumturquoise', 'orange', 'green', 'grey', 'lightgrey', 'indianred']
+    colors = ['mediumturquoise', 'orange', 'lightgrey', 'indianred', 'green', 'grey']
     import seaborn as sns
     colors += sns.color_palette("hls", 9)[1:]
     
