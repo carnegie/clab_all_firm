@@ -1,6 +1,6 @@
 # All firm technologies project 
 
-Using PyPSA with [table input interface](https://github.com/carnegie/clab_pypsa) to produce series of least-cost energy systems with all firm technologies, removing the most valuable technology consecutively.
+Using [PyPSA](https://github.com/PyPSA/pypsa) with [table input interface](https://github.com/carnegie/clab_pypsa) to produce series of least-cost energy systems with all firm technologies, removing the most valuable technology consecutively.
 
 #
 ## Installation/setup
@@ -34,21 +34,24 @@ If you already have Gurobi installed on your computer, you may find it useful to
 #
 ## Data input files
 
-The data input files are stored in ```input_data```. It contains solar and wind capacity factors and demand data for the contiguous United States as well as cost input data.
+The data input files are stored in ```input_data``` including the main excel file that defines the electricity network ```input_data/all_firm_case.xlsx```. It also contains wind and solar capacity factors and demand data for the contiguous United States as well as cost input data.
 
 #
 ## Run PyPSA to recreate the series outputs
 
-The script ```component_removal.py``` runs the optimization, determines the most valuable technology and removes it from the system which is the reoptimized. This process continues until only wind and solar generators are in the system. The script is run in the pypsa_table environment with the following command:
+The script ```component_removal.py``` runs the optimization, determines the most valuable technology and removes it from the system which is then reoptimized. This process continues until only wind and solar generators are in the system. The script is run in the pypsa_table environment with the following command:
 
 ```python component_removal.py --order most --dont_remove_SW```
 
 where the options are:
-   - ```-c```: the name of the case file, default is ```_case``` which runs the main case file ```all_firm_case.xlsx```
+
    - ```--order most```: the order in which the components are removed, either most valuable or least valuable
    - ```--dont_remove_SW```: if this option is not used, the script will also remove solar and wind generators from the system
 
-The outputs are stored in the ```output_data``` directory in a subdirectory describing the case.
+   - *```-c```: the name of the case file, default is ```_case``` which runs the main case file ```all_firm_case.xlsx```*
+
+
+The outputs are stored in the ```output_data``` directory in a subdirectory named accoring to the case.
 
 ## Plotting the results
 
