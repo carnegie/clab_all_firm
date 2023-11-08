@@ -62,3 +62,6 @@ The results are plotted with the interactive jupyter notebook ```plot_results.ip
 and plots the results in the ```figures/``` directory.
 
 
+[![DOI](https://www.zenodo.org/badge/DOI/10.5281/zenodo.8436430.svg)](https://www.doi.org/10.5281/zenodo.8436430)
+
+
