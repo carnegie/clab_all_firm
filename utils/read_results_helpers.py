@@ -149,7 +149,7 @@ def compute_results(res_dir, poi, files_sorted, firm_gens, pass_results=[]):
     """
     Compute results to be plotted for all case pickle files in all_firm_case folder
     """
-    if poi != 'normalized_cost' and not pass_results:
+    if (poi != 'normalized_cost' and poi != 'normalized_dispatch') and not pass_results:
         all_results = []
         for case_file in files_sorted:
             # Load results
@@ -160,7 +160,7 @@ def compute_results(res_dir, poi, files_sorted, firm_gens, pass_results=[]):
             all_results.append(results)       
     
     # Calculate the normalized cost from the cost results
-    elif poi == 'normalized_cost' and pass_results != []:
+    elif (poi == 'normalized_cost' or poi == 'normalized_dispatch') and pass_results != []:
         total_demand = abs(get_demand(res_dir, 'all_firm_all.pickle'))
         all_results = [{} for i in range(len(pass_results))]
         for i,case in enumerate(pass_results):

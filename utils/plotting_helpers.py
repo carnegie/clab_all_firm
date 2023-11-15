@@ -34,27 +34,6 @@ def get_hatching_color(component, technologies, color_dict):
         hatch_color = color_dict[index]
     return hatched, fill_color, hatch_color
 
-def set_title(outfile_suffix, ax, poi):
-    """
-    Set title for plot
-    """
-    if "most" in outfile_suffix:
-        large_small = 'Largest'
-    else:
-        large_small = 'Smallest'
-    if "no_generators" in outfile_suffix:
-        add = ', no firm generators'
-    else:
-        add = ''
-    if poi == 'dispatch':
-        add += ' generation'
-    ax.set_title('{0} cost increase{1}'.format(large_small, add))
-    # Set title size and position
-    ax.title.set_size(14)
-    ax.title.set_position([.5, 1.3])
-    plt.setp(ax.get_xticklabels(), rotation=40, ha='right', rotation_mode='anchor', fontsize=8)
-    return ax
-
 def set_x_y_labels(outfile_suffix, poi, ax):
     """
     Set x and y labels
@@ -70,18 +49,20 @@ def set_x_y_labels(outfile_suffix, poi, ax):
     elif poi == 'capacity':
         unit = 'MW (or tCo2 for CO2 storage)'
     elif poi == 'normalized_cost':
-        unit = '€/MWh covered demand'
-    elif poi == 'dispatch':
-        unit = 'MWh'
+        unit = '€/MWh met demand'
+    elif poi == 'normalized_dispatch':
+        unit = 'MWh/MWh met demand'
     else:
         print('No unit defined for {0}'.format(poi))
         unit =  ''
 
-    if poi == 'dispatch':
-        add = 'generation '
+    if poi == 'normalized_cost':
+        ylabel = 'System Cost'
+    elif poi == 'normalized_dispatch':
+        ylabel = 'Available Generation'
     else:
-        add = ''
-    ax.set_ylabel('Total {0}{1} [{2}]'.format(add, poi.replace('_',' '), unit))
+        ylabel = ''
+    ax.set_ylabel('{0} [{1}]'.format(ylabel, unit))
     return ax
 
 def get_colors():
