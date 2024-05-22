@@ -191,3 +191,13 @@ def update_input_sheet(input_file, remove_comp, suffix):
         input_df.to_excel(writer, sheet_name="input file", index=False, header=headers)
 
     return updated_input_file
+
+
+def get_tech_costs(cost_name):
+    """
+    Get cost for a specific technology
+    """
+    all_res_file = 'output_data/all_firm_case_most/plotting/all_firm_all.xlsx'
+    all_res = pd.read_excel(all_res_file, sheet_name='component inputs')
+    all_res = all_res[['carrier', 'component', 'name', cost_name]]
+    return all_res
